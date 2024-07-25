@@ -41,35 +41,16 @@ resource "azurerm_virtual_machine" "DockerVm" {
 
   provisioner "remote-exec" {
   inline = [
-    # Update package list
     "sudo apt-get update",
-
-    # Install prerequisites
     "sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common",
-
-    # Add Docker’s official GPG key
     "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
-
-    # Add Docker repository
     "echo 'deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable' | sudo tee /etc/apt/sources.list.d/docker.list",
-
-    # Update package list again
     "sudo apt-get update",
-
-    # Install Docker CE
     "sudo apt-get install -y docker-ce",
-
-    # Start Docker and enable it to start on boot
     "sudo systemctl start docker",
     "sudo systemctl enable docker",
-
-    # Log into Docker registry
     "echo ${data.azurerm_container_registry.container_registry.admin_password} | sudo docker login -u ${data.azurerm_container_registry.container_registry.admin_username} --password-stdin ${data.azurerm_container_registry.container_registry.login_server}",
-
-    # Pull the nginx image
     "sudo docker pull ${data.azurerm_container_registry.container_registry.login_server}/catalogapp3",
-
-    # Run the nginx container
     "sudo docker run -d -p 80:80 ${data.azurerm_container_registry.container_registry.login_server}/catalogapp3"
   ]
 }
